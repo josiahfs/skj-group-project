@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:socket_client/util/socket_util.dart';
 import 'package:web_socket_channel/io.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
@@ -13,12 +14,18 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   late TextEditingController _textEditingController;
   late WebSocketChannel _channel;
+  late String _status;
+  late SocketUtil _socketUtil;
+  late List<String> _messages;
 
   @override
   void initState() {
     super.initState();
     _textEditingController = TextEditingController();
-    _connectSocketChannel();
+    // _connectSocketChannel();
+    _status = '';
+    _socketUtil = SocketUtil();
+    _messages = <String>[];
   }
 
   _connectSocketChannel() {
@@ -47,7 +54,18 @@ class _HomePageState extends State<HomePage> {
           child: Padding(
             padding: const EdgeInsets.only(top: 16),
             child: Column(
+              // mainAxisAlignment: MainAxisAlignment.end,
               children: [
+                // Text(_status),
+                // StreamBuilder(
+                //   stream: _channel.stream,
+                //   builder: ((context, snapshot) {
+                //     return Padding(
+                //       padding: EdgeInsets.all(12),
+                //       child: Text(snapshot.hasData ? '${snapshot.data}' : ''),
+                //     );
+                //   }),
+                // ),
                 TextField(
                   controller: _textEditingController,
                   decoration: InputDecoration(
@@ -63,24 +81,22 @@ class _HomePageState extends State<HomePage> {
                     if (_textEditingController.text.isEmpty) {
                       return;
                     }
-                    sendMessage();
+                    // sendMessage();
+                    _socketUtil.sendMessage(_textEditingController.text);
                   },
                   child: Text('Send Message'),
                 ),
-                StreamBuilder(
-                  stream: _channel.stream,
-                  builder: ((context, snapshot) {
-                    return Padding(
-                      padding: EdgeInsets.all(12),
-                      child: Text(snapshot.hasData ? '${snapshot.data}' : ''),
-                    );
-                  }),
-                )
               ],
             ),
           ),
         ),
       ),
     );
+  }
+
+  void connectionListener(bool connected) {
+    setState(() {
+      _status = 'Status: ' + (connected ? 'Connected' : 'Failed to connect');
+    });
   }
 }
